@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# 创建数据目录
+RUN mkdir -p /app/data
+
+# 安装依赖（使用淘宝镜像）
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm config set strict-ssl false
+
+COPY package*.json ./
+RUN npm install
+
+# 复制源代码
+COPY . .
+
+# 暴露端口
+EXPOSE 3001
+
+CMD ["npm", "run", "dev:sqlite"]
