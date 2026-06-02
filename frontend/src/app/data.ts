@@ -1,5 +1,5 @@
-import { projectsApi } from '@/lib/api';
-import { Project } from '@/types';
+import { authApi, projectsApi } from '@/lib/api';
+import { Project, User } from '@/types';
 
 /**
  * Server-side data fetching function
@@ -12,5 +12,14 @@ export async function getProjects(): Promise<Project[]> {
   } catch (error) {
     console.error('Failed to fetch projects:', error);
     return [];
+  }
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const response = await authApi.me();
+    return response.data;
+  } catch (error) {
+    return null;
   }
 }

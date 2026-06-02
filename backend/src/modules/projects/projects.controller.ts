@@ -34,11 +34,16 @@ export class ProjectsController {
   }
 
   @Post()
-  async create(@Body() createProjectDto: CreateProjectDto, @GetUser('userId') userId: number) {
+  async create(
+    @Body() createProjectDto: CreateProjectDto,
+    @GetUser('userId') userId: number,
+    @GetUser('email') email: string,
+  ) {
     return this.projectsService.create(
       createProjectDto.name,
       createProjectDto.description,
       userId,
+      email,
     );
   }
 

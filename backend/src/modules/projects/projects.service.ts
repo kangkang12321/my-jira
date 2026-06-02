@@ -13,7 +13,7 @@ export class ProjectsService {
     private memberRepository: Repository<ProjectMember>,
   ) {}
 
-  async create(name: string, description: string, ownerId: number) {
+  async create(name: string, description: string, ownerId: number, ownerEmail: string) {
     // 生成项目 Key
     const key = await this.generateProjectKey(name);
 
@@ -22,6 +22,7 @@ export class ProjectsService {
       description,
       key,
       owner_id: ownerId,
+      owner_email: ownerEmail,
     });
 
     const savedProject = await this.projectRepository.save(project);

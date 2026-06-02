@@ -12,19 +12,24 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
   if (!email || !password) {
     return { error: '请填写所有字段' };
   }
+  let showRedirect = false;
 
   try {
     const response = await authApi.login({ email, password });
-    const { access_token, user } = response.data;
+    const { access_token } = response.data;
 
-    // 设置 token
-    setToken(access_token);
+    // Server Actions run on the server, so persist auth with an HTTP-only cookie.
+    await setToken(access_token);
+    showRedirect = true;
 
-    // 使用重定向而不是返回数据（Server Action 特性）
-    redirect('/');
   } catch (error: any) {
     return {
       error: error.response?.data?.message || '登录失败，请检查凭据',
     };
+  }
+
+  if (showRedirect) {
+    // 使用重定向而不是返回数据（Server Action 特性）
+    redirect('/');
   }
 }

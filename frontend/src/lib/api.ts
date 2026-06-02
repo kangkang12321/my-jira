@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios';
+import { cookies } from 'next/headers';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const ACCESS_TOKEN_COOKIE = 'access_token';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,29 +12,31 @@ const api = axios.create({
   },
 });
 
-// Token management
-const getToken = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('access_token');
-  }
-  return null;
+// Server-side token management. Server Actions cannot read or write browser localStorage.
+const getToken = async () => {
+  const cookieStore = await cookies();
+  return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
 };
 
-const setToken = (token: string) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('access_token', token);
-  }
+const setToken = async (token: string) => {
+  const cookieStore = await cookies();
+  cookieStore.set(ACCESS_TOKEN_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
 };
 
-const removeToken = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('access_token');
-  }
+const removeToken = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete(ACCESS_TOKEN_COOKIE);
 };
 
 // Request interceptor
-api.interceptors.request.use((config) => {
-  const token = getToken();
+api.interceptors.request.use(async (config) => {
+  const token = await getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -43,12 +47,6 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      removeToken();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-    }
     return Promise.reject(error);
   }
 );

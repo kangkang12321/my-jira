@@ -1,12 +1,17 @@
-import { getProjects } from './data';
+import { getCurrentUser, getProjects } from './data';
 import { ProjectList } from '@/components/project-list';
 import { CreateProjectForm } from '@/components/create-project-form';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 // Server Component - 默认就是 Server Component
 export default async function HomePage() {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    redirect('/login');
+  }
+
   // SSR: 服务器端获取数据
   const projects = await getProjects();
 
@@ -25,12 +30,7 @@ export default async function HomePage() {
             </div>
 
             <nav className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost">登录</Button>
-              </Link>
-              <Link href="/register">
-                <Button>注册</Button>
-              </Link>
+              <span className="text-sm text-gray-600">{currentUser.username}</span>
             </nav>
           </div>
         </div>
@@ -46,7 +46,7 @@ export default async function HomePage() {
         <CreateProjectForm />
 
         {/* Project List - 使用 'use client' 标记的组件 */}
-        <ProjectList initialProjects={projects} />
+        <ProjectList initialProjects={projects} currentUser={currentUser} />
       </main>
     </div>
   );

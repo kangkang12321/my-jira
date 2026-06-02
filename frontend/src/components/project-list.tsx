@@ -1,18 +1,17 @@
 'use client';
 
 import { useState, useTransition, useOptimistic, startTransition } from 'react';
-import { Project } from '@/types';
+import { Project, User } from '@/types';
 import { deleteProjectAction } from '@/app/actions';
 import { Button } from './ui/button';
-import { useAuthStore } from '@/store/auth';
 import { formatDate } from '@/lib/utils';
 
 interface ProjectListProps {
   initialProjects: Project[];
+  currentUser: User;
 }
 
-export function ProjectList({ initialProjects }: ProjectListProps) {
-  const { user } = useAuthStore();
+export function ProjectList({ initialProjects, currentUser }: ProjectListProps) {
   const [projects, setProjects] = useState(initialProjects);
   const [isPending, startTransition] = useTransition();
 
@@ -75,7 +74,7 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
               )}
             </div>
 
-            {user && project.ownerId === user.id && (
+            {project.ownerId === currentUser.id && (
               <Button
                 variant="ghost"
                 size="icon"

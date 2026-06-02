@@ -22,18 +22,23 @@ export async function registerAction(_prevState: unknown, formData: FormData) {
   if (password.length < 6) {
     return { error: '密码长度至少为 6 位' };
   }
+  let showRedirect = false;
 
   try {
     const response = await authApi.register({ email, password, username });
-    const { access_token, user } = response.data;
+    const { access_token } = response.data;
 
-    // 设置 token
-    setToken(access_token);
-
-    redirect('/');
+    // Server Actions run on the server, so persist auth with an HTTP-only cookie.
+    await setToken(access_token);
+    showRedirect = true;
   } catch (error: any) {
     return {
       error: error.response?.data?.message || '注册失败，邮箱可能已被使用',
     };
+  }
+
+  if (showRedirect) {
+    // 使用重定向而不是返回数据（Server Action 特性）
+    redirect('/');
   }
 }
